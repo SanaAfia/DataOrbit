@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Organize DataOrbit learning projects and GitHub repositories." />
+  <title>Projects | DataOrbit</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body data-page="projects">
+  <header class="navbar"><div class="container nav-wrap"><a href="index.html" class="brand"><img src="assets/mbu-logo.png" alt="Mohan Babu University logo" /><span class="brand-name">DataOrbit</span></a><button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false"><span></span><span></span><span></span></button><nav class="nav-menu" aria-label="Main navigation"><a class="nav-link" href="index.html">Home</a><a class="nav-link" href="modules.html">Modules</a><a class="nav-link" href="resources.html">Resources</a><a class="nav-link" href="tools.html">Tools</a><a class="nav-link active" href="projects.html">Projects</a><a class="nav-link" href="lab.html">Lab Experiments</a><a class="nav-link" href="profile.html">Profile</a></nav></div></header>
+  <main class="page-main">
+    <section class="container page-heading"><span class="eyebrow">Plan / Build / Share</span><h1>Projects</h1><p>Keep your data science projects organized and connect each one to its GitHub repository.</p></section>
+    <section class="container projects-workspace">
+      <div class="project-toolbar"><button class="primary-btn" id="addProjectBtn"><i class="fa-solid fa-plus"></i> Add Project</button><button class="secondary-btn" id="addFolderBtn"><i class="fa-solid fa-folder-plus"></i> Add Folder</button></div>
+      <section class="project-section featured-project-section" aria-labelledby="featuredProjectsHeading">
+        <div class="section-header"><div><span class="eyebrow">Featured project</span><h2 id="featuredProjectsHeading">Study Planner</h2></div></div>
+        <article class="project-card glass-card featured-project-card">
+          <div class="folder-icon"><i class="fa-solid fa-book-open-reader" aria-hidden="true"></i></div>
+          <p>Study Planner (StudySync) is a student productivity app for organizing study tasks and subjects, tracking reading and progress, taking practice tests, writing notes, and planning study time with a calendar and Pomodoro timer.</p>
+          <p><strong>Project folder:</strong> study Planner</p>
+          <p><i class="fa-brands fa-github" aria-hidden="true"></i> <strong>GitHub:</strong> <a href="https://github.com/SanaAfia/Study-planner" target="_blank" rel="noopener noreferrer">https://github.com/SanaAfia/Study-planner</a></p>
+          <div class="project-actions"><a class="secondary-btn" href="https://github.com/SanaAfia/Study-planner" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-github" aria-hidden="true"></i> Open GitHub Repo</a></div>
+          <div class="project-tags"><span>HTML</span><span>CSS</span><span>JavaScript</span><span>Study Planning</span></div>
+          <details class="project-file-details">
+            <summary><i class="fa-solid fa-folder-tree" aria-hidden="true"></i> View project files</summary>
+            <div class="project-file-groups">
+              <div><strong>Pages</strong><ul><li>index.html</li><li>auth.html</li><li>dashboard.html</li></ul></div>
+              <div><strong>Styles</strong><ul><li>css/style.css</li></ul></div>
+              <div><strong>JavaScript modules</strong><ul><li>js/auth.js</li><li>js/calendar.js</li><li>js/dashboard.js</li><li>js/landing.js</li><li>js/notes.js</li><li>js/planner.js</li><li>js/progress.js</li><li>js/storage.js</li><li>js/subjects.js</li><li>js/tests.js</li><li>js/tracker.js</li></ul></div>
+              <div><strong>Documentation</strong><ul><li>README.md</li></ul></div>
+            </div>
+          </details>
+        </article>
+      </section>
+      <section class="project-section"><div class="section-header"><div><span class="eyebrow">Organize your work</span><h2>Project Folders</h2></div></div><div id="foldersList" class="folders-grid"></div></section>
+      <section class="project-section" id="projectsListSection"><div class="section-header"><div><span class="eyebrow">Your portfolio</span><h2 id="projectsListTitle">All Projects</h2></div><button class="ghost-btn" id="backToProjectsBtn" hidden>Back to All Projects</button></div><div id="projectsList" class="projects-grid"></div></section>
+    </section>
+    <section class="container about-project"><article class="glass-card"><span class="eyebrow">About</span><h2>About the Project</h2><p>DataOrbit is a student-focused digital library for learning data science. It brings together course modules, PDF reading, curated learning resources, coding practice, and a personal project portfolio in one responsive website.</p><p>Module PDFs are stored by the local DataOrbit server. Projects, folders, selected theme, and saved lab code are stored in this browser's local storage, so they remain available in this browser profile rather than syncing to other devices.</p></article></section>
+  </main>
+  <footer class="site-footer"><div class="container footer-wrap"><a class="footer-brand" href="index.html"><img src="assets/mbu-logo.png" alt="Mohan Babu University logo" /><h3>DataOrbit – Digital Library for Data Science</h3></a><nav class="footer-links" aria-label="Footer navigation"><a href="index.html">Home</a><a href="modules.html">Modules</a><a href="resources.html">Resources</a><a href="tools.html">Tools</a><a href="projects.html">Projects</a><a href="lab.html">Lab Experiments</a><a href="profile.html">Profile</a></nav></div><div class="container footer-bottom"><p>© 2026 DataOrbit | Designed by BADVEL SHAIK SANA AFIA</p></div></footer>
+  <div id="projectModal" class="modal" aria-hidden="true"><div class="modal-dialog"><button class="close-modal" data-close="projectModal" aria-label="Close">&times;</button><h2>Add Project</h2><form id="projectForm" class="modal-form">
+    <label><span>Project title</span><input id="projectTitle" required maxlength="120" /></label>
+    <label><span>Project description</span><textarea id="projectDescription" rows="3" maxlength="800"></textarea></label>
+    <label><span>Project folder</span><select id="projectFolder"><option value="">Unfiled</option></select></label>
+    <label><span>GitHub repository link</span><input id="projectGithub" type="url" placeholder="https://github.com/username/repository" /></label>
+    <label><span>Tags (comma-separated)</span><input id="projectTags" placeholder="Python, Pandas, Machine Learning" /></label>
+    <button class="primary-btn" type="submit">Save Project</button></form></div></div>
+  <div id="folderModal" class="modal" aria-hidden="true"><div class="modal-dialog"><button class="close-modal" data-close="folderModal" aria-label="Close">&times;</button><h2>Add Folder</h2><form id="folderForm" class="modal-form"><label><span>Folder name</span><input id="folderName" required maxlength="80" /></label><label><span>Optional folder description</span><textarea id="folderDescription" rows="3" maxlength="400"></textarea></label><label><span>Add files to this folder</span><input id="folderFiles" type="file" multiple /></label><p id="folderFilesSummary" class="form-hint" aria-live="polite">No files selected.</p><p class="form-hint">Files are saved in this browser and can be downloaded from the folder card.</p><button class="primary-btn" type="submit">Save Folder</button></form></div></div>
+  <div id="toast" class="toast" aria-live="polite"></div><script src="script.js"></script>
+</body>
+</html>

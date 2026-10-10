@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab Experiments | DataOrbit</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body data-page="lab">
+  <header class="navbar"><div class="container nav-wrap"><a href="index.html" class="brand"><img src="assets/mbu-logo.png" alt="Mohan Babu University logo" /><span class="brand-name">DataOrbit</span></a><button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false"><span></span><span></span><span></span></button><nav class="nav-menu" aria-label="Main navigation"><a class="nav-link" href="index.html">Home</a><a class="nav-link" href="modules.html">Modules</a><a class="nav-link" href="resources.html">Resources</a><a class="nav-link" href="tools.html">Tools</a><a class="nav-link" href="projects.html">Projects</a><a class="nav-link active" href="lab.html">Lab Experiments</a><a class="nav-link" href="profile.html">Profile</a></nav></div></header>
+  <main class="page-main">
+    <section class="container page-heading"><span class="eyebrow">Practical Practice</span><h1>Lab Experiments Workspace</h1><p>Write, run, save, upload, and revisit code from one place.</p></section>
+    <section class="container lab-wrap lab-page-layout">
+      <div class="lab-panel glass-card">
+        <div class="editor-toolbar"><label class="language-picker" for="languageSelect"><span>Language</span><select id="languageSelect"><option>Python</option><option>Java</option><option>C</option><option>C++</option><option>PyTorch</option><option>Pandas</option></select></label>
+          <div class="lab-actions"><button class="secondary-btn" id="loadSampleCodeBtn">Load Sample Code</button><button class="secondary-btn" id="copyCodeBtn">Copy Code</button><button class="ghost-btn" id="clearCodeBtn">Clear Code</button></div>
+        </div>
+        <textarea id="codeEditor" spellcheck="false" aria-label="Code editor" placeholder="Write your code here…" rows="16"></textarea>
+        <div class="run-actions"><button class="primary-btn" id="runCodeBtn"><i class="fa-solid fa-play"></i> Run Code</button><button class="secondary-btn" id="saveCodeBtn">Save Code</button><button class="secondary-btn" id="viewSavedFilesBtn">View Saved Files</button><button class="secondary-btn" id="uploadCodeBtn">Upload File</button><input id="codeUploadInput" type="file" accept=".py,.java,.c,.cpp,.ipynb" hidden /><button class="secondary-btn" id="runColabBtn">Open in Google Colab</button><button class="secondary-btn" id="openCompilerBtn">Open Online Compiler</button></div>
+        <p class="execution-disclosure"><strong>Execution notice:</strong> Run Code sends your source code through this local server to Wandbox, an online compiler. Do not submit secrets or private data. Runs are time-limited; Pandas and PyTorch may not be installed, so use Google Colab for those libraries.</p>
+        <section class="execution-output" aria-live="polite"><h2>Output</h2><pre id="codeOutput">Run your code to see output here.</pre></section>
+      </div>
+      <aside class="suggested-experiments glass-card"><h2>Suggested Lab Experiments</h2><ol><li>Perform basic operations using NumPy</li><li>Create and analyze a DataFrame using Pandas</li><li>Visualize a dataset using Matplotlib</li><li>Clean missing values in a dataset</li><li>Implement linear regression using Scikit-learn</li><li>Build a simple neural network using PyTorch</li><li>Write a Java program to calculate student grades</li><li>Write a C program for matrix addition</li><li>Write a C++ program to sort an array</li></ol></aside>
+    </section>
+  </main>
+  <footer class="site-footer"><div class="container footer-wrap"><a class="footer-brand" href="index.html"><img src="assets/mbu-logo.png" alt="Mohan Babu University logo" /><h3>DataOrbit – Digital Library for Data Science</h3></a><nav class="footer-links" aria-label="Footer navigation"><a href="index.html">Home</a><a href="modules.html">Modules</a><a href="resources.html">Resources</a><a href="tools.html">Tools</a><a href="projects.html">Projects</a><a href="lab.html">Lab Experiments</a><a href="profile.html">Profile</a></nav></div><div class="container footer-bottom"><p>© 2026 DataOrbit | Designed by BADVEL SHAIK SANA AFIA</p></div></footer>
+  <div id="saveCodeModal" class="modal" aria-hidden="true"><div class="modal-dialog"><button class="close-modal" data-close="saveCodeModal" aria-label="Close">&times;</button><h2>Save Code</h2><form id="saveCodeForm" class="modal-form"><input id="codeFileId" type="hidden" /><label><span>File name</span><input id="codeFileName" required maxlength="100" /></label><label><span>Selected language</span><input id="codeFileLanguage" readonly /></label><label><span>Optional description</span><textarea id="codeFileDescription" rows="3" maxlength="400"></textarea></label><button class="primary-btn" type="submit">Save Code</button></form></div></div>
+  <div id="savedFilesModal" class="modal" aria-hidden="true"><div class="modal-dialog wide-dialog"><button class="close-modal" data-close="savedFilesModal" aria-label="Close">&times;</button><h2>Saved and Uploaded Files</h2><div id="savedFilesList" class="saved-files-list"></div></div></div>
+  <div id="toast" class="toast" aria-live="polite"></div><script src="script.js"></script>
+</body>
+</html>

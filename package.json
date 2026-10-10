@@ -1,0 +1,13 @@
+{
+  "name": "dataorbit-digital-library",
+  "version": "1.0.0",
+  "private": true,
+  "description": "DataOrbit static learning site with a PDF upload API",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "multer": "^2.0.2"
+  }
+}
