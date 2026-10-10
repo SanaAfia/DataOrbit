@@ -502,6 +502,43 @@ function showPdfServerNotice() {
   }
 }
 
+function isGitHubPages() {
+  return window.location.hostname.endsWith('.github.io');
+}
+
+function setupPublishedPdfCatalog() {
+  if (!isGitHubPages()) return;
+  const addButton = document.getElementById('addModulePdfBtn');
+  const actions = document.querySelector('.module-detail-actions');
+  if (addButton) addButton.hidden = true;
+  if (actions) {
+    const hint = document.createElement('p');
+    hint.className = 'form-hint';
+    hint.textContent = 'To add PDFs on GitHub Pages, place them in the pdfs folder and add them to pdfs.json in the GitHub repository.';
+    actions.insertAdjacentElement('afterend', hint);
+  }
+}
+
+async function getPublishedModulePDFs(moduleNumber) {
+  const response = await fetch('pdfs.json');
+  if (!response.ok) throw new Error('Could not load the published PDF list.');
+  const catalog = await response.json();
+  const modulePdfs = catalog && catalog[moduleNumber];
+  if (!Array.isArray(modulePdfs)) throw new Error('The published PDF list has an invalid format.');
+  return modulePdfs.map((pdf) => {
+    if (!pdf || typeof pdf.title !== 'string' || !pdf.title.trim()
+      || typeof pdf.path !== 'string'
+      || !new RegExp(`^pdfs/module${moduleNumber}/[A-Za-z0-9][A-Za-z0-9._-]*\\.pdf$`, 'i').test(pdf.path)) {
+      throw new Error(`The published PDF list for Module ${moduleNumber} contains an invalid entry.`);
+    }
+    return {
+      title: pdf.title,
+      fileName: pdf.path.split('/').pop(),
+      path: pdf.path
+    };
+  });
+}
+
 function addPDF(event) {
   if (event) event.preventDefault();
   if (window.location.protocol === 'file:') {
@@ -545,10 +582,14 @@ async function viewPDFs() {
   openModal('pdfListModal');
   let pdfs;
   try {
-    pdfs = (await getStoredPDFs()).filter((pdf) =>
-      pdf.moduleNumber === moduleNumber
-      || (!pdf.moduleNumber && moduleNumber === '1' && pdf.moduleName === 'Module 1: Introduction to Data Science')
-    );
+    if (isGitHubPages()) {
+      pdfs = await getPublishedModulePDFs(moduleNumber);
+    } else {
+      pdfs = (await getStoredPDFs()).filter((pdf) =>
+        pdf.moduleNumber === moduleNumber
+        || (!pdf.moduleNumber && moduleNumber === '1' && pdf.moduleName === 'Module 1: Introduction to Data Science')
+      );
+    }
   } catch (error) {
     content.innerHTML = '<div class="empty-state">Could not load saved PDFs.</div>';
     showPdfStorageError(error);
@@ -556,8 +597,10 @@ async function viewPDFs() {
   }
   content.innerHTML = pdfs.length ? pdfs.map((pdf) => `
     <article class="list-item">
-      <div><h4>${escapeHTML(pdf.title)}</h4><small>${escapeHTML(pdf.fileName || 'Module 1 PDF')}</small></div>
-      <div class="list-actions"><button class="open-pdf-btn" data-action="open-pdf" data-id="${escapeHTML(pdf.id)}">Read PDF</button><button class="delete-pdf-btn" data-action="delete-pdf" data-id="${escapeHTML(pdf.id)}">Delete PDF</button></div>
+      <div><h4>${escapeHTML(pdf.title)}</h4><small>${escapeHTML(pdf.fileName || 'PDF')}</small></div>
+      <div class="list-actions">${isGitHubPages()
+        ? `<a href="${escapeHTML(pdf.path)}" target="_blank" rel="noopener noreferrer">Open PDF</a>`
+        : `<button class="open-pdf-btn" data-action="open-pdf" data-id="${escapeHTML(pdf.id)}">Read PDF</button><button class="delete-pdf-btn" data-action="delete-pdf" data-id="${escapeHTML(pdf.id)}">Delete PDF</button>`}</div>
     </article>`).join('') : '<div class="empty-state">No PDFs added yet.</div>';
   openModal('pdfListModal');
 }
@@ -1375,6 +1418,11 @@ async function runCode() {
   const output = document.getElementById('codeOutput');
   const language = document.getElementById('languageSelect').value;
   if (!editor.value.trim()) return showToast('Write or load code before running it.', 'error');
+  if (isGitHubPages()) {
+    output.textContent = 'GitHub Pages cannot run code because it does not provide the required server. Use Open Online Compiler and paste your code there, or choose Open in Google Colab for Python, Pandas, or PyTorch.';
+    output.classList.remove('execution-error');
+    return;
+  }
   output.textContent = 'Compiling and running your code…';
   output.classList.remove('execution-error');
   const runButton = document.getElementById('runCodeBtn');
@@ -1385,7 +1433,15 @@ async function runCode() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ language, code: editor.value })
     });
-    const result = await response.json();
+    let result;
+    try {
+      result = await response.json();
+    } catch (error) {
+      if (!(error instanceof SyntaxError)) throw error;
+      throw new Error(response.status === 404
+        ? 'The code-execution server is not available at this address. Start the DataOrbit Node server or use Open Online Compiler.'
+        : 'The code-execution server returned an unexpected response. Check that the DataOrbit Node server is running.');
+    }
     if (!response.ok) throw new Error(result.error || `Execution service returned HTTP ${response.status}.`);
     if (typeof result.status !== 'string' || typeof result.programOutput !== 'string') {
       throw new Error('The online compiler returned an invalid response.');
@@ -1634,6 +1690,7 @@ function init() {
   applyTheme(savedTheme);
   ensureModulePdfLayout();
   showPdfServerNotice();
+  setupPublishedPdfCatalog();
   setupNavigation();
   setupPageEvents();
   renderResources();

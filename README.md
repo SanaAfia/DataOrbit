@@ -12,18 +12,20 @@ PDF uploads are limited to 100 MB. The local API does not include accounts or ac
 
 PDFs still present in this site's browser storage are copied to the server the next time that module's PDF list is opened. Browser storage is isolated by origin, so PDFs saved while opening pages directly with `file://` are not visible to the server; upload those files again after starting the server.
 
-## Deploy from GitHub with Render
+## Publish PDFs on GitHub Pages
 
-The root `render.yaml` configures a Render Node web service that serves both the site and its API from one URL, with a persistent disk mounted at `.data` for uploaded PDFs. The persistent disk requires a paid Render web-service plan.
+GitHub Pages serves static files and cannot run the PDF upload API. On GitHub Pages, add PDFs to the repository and list them in `pdfs.json`; the module pages will show links to them. These files are public to anyone who can access the site.
 
-1. Push this entire project (including `render.yaml`, `package.json`, and `package-lock.json`) to a GitHub repository you control.
-2. In Render, create a Blueprint from that repository and deploy the `dataorbit` service.
-3. Open the deployed service URL and check that `/api/health` returns `{"status":"ok"}`. Open the site's `index.html` route from that same URL.
+1. Add the PDF to `pdfs/moduleN/`, replacing `N` with the module number (1–5). Use a simple filename, such as `lecture-notes.pdf`.
+2. Edit the matching module list in `pdfs.json` and add an entry like `{"title":"Lecture notes","path":"pdfs/module1/lecture-notes.pdf"}`.
+3. Commit and push both files to GitHub. GitHub Pages will publish the changes; open the module page and choose **View Module N PDFs**.
 
-Do not publish the current backend as an unrestricted public service for real users: it has no authentication, so visitors can upload/delete PDFs and call the code execution endpoint. Add access control and abuse protections before sharing it publicly. Theme, project, folder, and lab-code browser data stays local to each user's browser and is not stored on the Render disk.
+Direct PDF uploads remain available when running the site with its Node server. The optional `render.yaml` deployment needs paid Render resources for persistent storage; no Render deployment is needed for GitHub Pages.
+
+The local PDF API does not include accounts or access control. Do not expose it to a public network without adding authentication and abuse protections.
 
 ## Browser features and storage
 
 The selected site theme, project/folder records, and saved or uploaded lab code are stored in this browser's local storage. Files attached to project folders are stored in IndexedDB in this browser. These records do not sync between browsers or devices and are subject to browser storage limits.
 
-The Lab Experiments page sends code through the local server to the external Wandbox compiler API when Run Code is used; do not submit credentials, secrets, or private data. The API supports Python, Java, C, and C++; Pandas and PyTorch packages may not be installed, so use Google Colab for those dependencies. Code submissions are limited to 48 KB and upstream requests time out after 30 seconds. PDF uploads continue to use the local Express backend.
+On GitHub Pages, the Lab Experiments page cannot run code because Pages does not provide the required server. Use **Open Online Compiler** and paste your code there, or use **Open in Google Colab** for Python, Pandas, or PyTorch. When running the site locally, Run Code sends code through the local server to the external Wandbox compiler API; do not submit credentials, secrets, or private data. The API supports Python, Java, C, and C++; Pandas and PyTorch packages may not be installed, so use Google Colab for those dependencies. Code submissions are limited to 48 KB and upstream requests time out after 30 seconds. PDF uploads continue to use the local Express backend.
