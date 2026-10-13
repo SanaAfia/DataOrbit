@@ -377,8 +377,7 @@ html[data-theme] #codeEditor {
 }
 
 .project-card,
-.folder-card,
-.saved-file-card {
+.folder-card {
   min-width: 0;
   overflow-wrap: anywhere;
 }
@@ -473,17 +472,6 @@ html[data-theme] #codeEditor {
 
 .about-project p {
   max-width: 850px;
-}
-
-.saved-files-list {
-  display: grid;
-  gap: 14px;
-}
-
-.saved-file-card {
-  padding: 16px;
-  border: 1px solid var(--theme-dark, #1F2C43);
-  border-radius: 14px;
 }
 
 .execution-disclosure {

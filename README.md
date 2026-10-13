@@ -14,18 +14,18 @@ PDFs still present in this site's browser storage are copied to the server the n
 
 ## Publish PDFs on GitHub Pages
 
-GitHub Pages serves static files and cannot run the PDF upload API. On GitHub Pages, add PDFs to the repository and list them in `pdfs.json`; the module pages open them in the built-in flipbook. Published PDFs are read-only in the site: they have no edit, delete, or download controls. Anyone with site access can still view the documents.
+Static hosts such as GitHub Pages and VS Code Live Server cannot run the PDF upload API. Add published PDFs to the repository and list them in `pdfs.json`; the module pages open them in the built-in flipbook. Published PDFs are read-only in the site: they have no edit, delete, or download controls. On static hosts, only published PDFs appear; uploaded PDFs require the DataOrbit server. Anyone with site access can still view published documents.
 
 1. Add the PDF to `pdfs/moduleN/`, replacing `N` with the module number (1–5). Use a simple filename, such as `lecture-notes.pdf`.
 2. Edit the matching module list in `pdfs.json` and add an entry like `{"title":"Lecture notes","path":"pdfs/module1/lecture-notes.pdf"}`.
 3. Commit and push the PDF and catalog changes to GitHub. GitHub Pages will publish them; open the module page, choose **View Module N PDFs**, then **Read in Flipbook**.
 
-Direct PDF uploads remain available when running the site with its Node server. The optional `render.yaml` deployment needs paid Render resources for persistent storage; no Render deployment is needed for GitHub Pages.
+Module pages have no PDF upload controls; publish PDFs through the repository catalog. The local API retains its upload endpoints for existing integrations. The optional `render.yaml` deployment needs paid Render resources for persistent storage; no Render deployment is needed for GitHub Pages.
 
 The local PDF API does not include accounts or access control. Do not expose it to a public network without adding authentication and abuse protections.
 
 ## Browser features and storage
 
-The selected site theme, project/folder records, and saved or uploaded lab code are stored in this browser's local storage. Files attached to project folders are stored in IndexedDB in this browser. These records do not sync between browsers or devices and are subject to browser storage limits.
+The selected site theme, project/folder records, and Lab Experiments editor draft are stored in this browser's local storage. Files attached to project folders are stored in IndexedDB in this browser. These records do not sync between browsers or devices and are subject to browser storage limits.
 
 On GitHub Pages, the Lab Experiments page cannot run code because Pages does not provide the required server. Use **Open Online Compiler** and paste your code there, or use **Open in Google Colab** for Python, Pandas, or PyTorch. When running the site locally, Run Code sends code through the local server to the external Wandbox compiler API; do not submit credentials, secrets, or private data. The API supports Python, Java, C, and C++; Pandas and PyTorch packages may not be installed, so use Google Colab for those dependencies. Code submissions are limited to 48 KB and upstream requests time out after 30 seconds. PDF uploads continue to use the local Express backend.

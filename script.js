@@ -14,7 +14,6 @@ const RESOURCE_STORAGE_KEY = 'dataVerseResources';
 const THEME_STORAGE_KEY = 'dataOrbitTheme';
 const PROJECT_STORAGE_KEY = 'savedProjects';
 const FOLDER_STORAGE_KEY = 'projectFolders';
-const CODE_FILE_STORAGE_KEY = 'savedCodeFiles';
 const EDITOR_STORAGE_KEY = 'dataOrbitLabDraft';
 const THEMES = {
   'buttermilk-pageant-blue': {
@@ -512,6 +511,21 @@ function isGitHubPages() {
   return window.location.hostname.endsWith('.github.io');
 }
 
+async function isPdfUploadApiAvailable() {
+  let response;
+  try {
+    response = await fetch('api/health');
+  } catch (error) {
+    if (error instanceof TypeError) return false;
+    throw error;
+  }
+  if (response.status === 404 || !response.headers.get('content-type')?.includes('application/json')) return false;
+  if (!response.ok) throw new Error('Could not check whether the PDF upload server is available.');
+  const health = await response.json();
+  if (!health || health.status !== 'ok') throw new Error('The PDF upload server returned an invalid health response.');
+  return true;
+}
+
 function setupPublishedPdfCatalog() {
   const addButton = document.getElementById('addModulePdfBtn');
   if (isGitHubPages() && addButton) addButton.hidden = true;
@@ -547,52 +561,18 @@ async function getPublishedModulePDFs(moduleNumber) {
   });
 }
 
-function addPDF(event) {
-  if (event) event.preventDefault();
-  if (window.location.protocol === 'file:') {
-    showToast('PDF upload is unavailable from a file:// page. Open http://127.0.0.1:3000, go to this module, and select the PDF again.', 'error');
-    return;
-  }
-  const moduleNumber = document.body.dataset.moduleNumber;
-  const moduleTitle = document.body.dataset.moduleTitle;
-  if (!moduleNumber || !moduleTitle) {
-    showToast('Module details are missing. Return to the Modules page and try again.', 'error');
-    return;
-  }
-  const title = document.getElementById('pdfTitleInput').value.trim();
-  const file = document.getElementById('pdfFileInput').files[0];
-  if (!title || !file) {
-    showToast('Please enter a title and select a PDF file.', 'error');
-    return;
-  }
-  if (!file.name.toLowerCase().endsWith('.pdf') && file.type !== 'application/pdf') {
-    showToast('Please select a valid PDF file.', 'error');
-    return;
-  }
-  saveStoredPDF({
-    id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
-    title,
-    moduleNumber,
-    moduleName: `Module ${moduleNumber}: ${moduleTitle}`,
-    fileName: file.name,
-    file
-  }).then(() => {
-    document.getElementById('pdfForm').reset();
-    closeModal('pdfModal');
-    showToast(`Module ${moduleNumber} PDF added successfully.`);
-  }).catch(showPdfStorageError);
-}
-
 async function viewPDFs() {
   const content = document.getElementById('pdfListContent');
   const moduleNumber = document.body.dataset.moduleNumber;
   content.innerHTML = '<div class="empty-state">Loading saved PDFs…</div>';
   openModal('pdfListModal');
   let pdfs;
+  let showUploadServerNotice = false;
   try {
     const publishedPdfs = await getPublishedModulePDFs(moduleNumber);
-    if (isGitHubPages()) {
+    if (isGitHubPages() || !await isPdfUploadApiAvailable()) {
       pdfs = publishedPdfs;
+      showUploadServerNotice = !isGitHubPages();
     } else {
       const uploadedPdfs = (await getStoredPDFs()).filter((pdf) =>
         pdf.moduleNumber === moduleNumber
@@ -605,13 +585,16 @@ async function viewPDFs() {
     showPdfStorageError(error);
     return;
   }
-  content.innerHTML = pdfs.length ? pdfs.map((pdf) => `
+  const notice = showUploadServerNotice
+    ? '<p class="form-hint">Showing published PDFs. User-uploaded PDFs require the DataOrbit server.</p>'
+    : '';
+  content.innerHTML = notice + (pdfs.length ? pdfs.map((pdf) => `
     <article class="list-item">
       <div><h4>${escapeHTML(pdf.title)}</h4><small>${pdf.readOnly ? 'Published · read-only' : escapeHTML(pdf.fileName || 'PDF')}</small></div>
       <div class="list-actions">${pdf.readOnly
         ? `<button class="open-pdf-btn" data-action="open-pdf" data-id="${escapeHTML(pdf.id)}">Read in Flipbook</button>`
         : `<button class="open-pdf-btn" data-action="open-pdf" data-id="${escapeHTML(pdf.id)}">Read PDF</button><button class="delete-pdf-btn" data-action="delete-pdf" data-id="${escapeHTML(pdf.id)}">Delete PDF</button>`}</div>
-    </article>`).join('') : '<div class="empty-state">No PDFs added yet.</div>';
+    </article>`).join('') : '<div class="empty-state">No PDFs added yet.</div>');
   openModal('pdfListModal');
 }
 
@@ -865,32 +848,6 @@ function renderResources() {
       <a class="open-link" href="${escapeHTML(resource.url)}" target="_blank" rel="noopener noreferrer">Open Resource <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
       ${resource.custom ? `<button class="delete-btn" data-action="delete-resource" data-id="${escapeHTML(resource.id)}">Delete</button>` : ''}
     </article>`).join('');
-}
-
-function addResource(event) {
-  if (event) event.preventDefault();
-  const title = document.getElementById('resourceTitleInput').value.trim();
-  const topic = document.getElementById('resourceTopicInput').value.trim();
-  const type = document.getElementById('resourceTypeInput').value;
-  const url = document.getElementById('resourceUrlInput').value.trim();
-  if (!title || !url) {
-    showToast('Title and URL cannot be empty.', 'error');
-    return;
-  }
-  if (!/^https?:\/\//i.test(url)) {
-    showToast('URL must start with http:// or https://', 'error');
-    return;
-  }
-  const userResources = readStorage(RESOURCE_STORAGE_KEY);
-  userResources.push({ id: `${Date.now()}-${Math.random().toString(36).slice(2)}`, title, topic: topic || 'General', type, url });
-  if (!writeStorage(RESOURCE_STORAGE_KEY, userResources)) {
-    showToast('Could not save the resource to browser storage.', 'error');
-    return;
-  }
-  document.getElementById('resourceForm').reset();
-  closeModal('resourceModal');
-  renderResources();
-  showToast('Resource added successfully.');
 }
 
 function viewResources() {
@@ -1249,128 +1206,6 @@ function openGitHubRepo(url) {
   window.open(url, '_blank', 'noopener,noreferrer');
 }
 
-const CODE_EXTENSIONS = { Python: 'py', Pandas: 'py', PyTorch: 'py', Java: 'java', C: 'c', 'C++': 'cpp', Notebook: 'ipynb' };
-
-function saveCode(event) {
-  if (event) event.preventDefault();
-  const editor = document.getElementById('codeEditor');
-  const language = document.getElementById('languageSelect').value;
-  const name = document.getElementById('codeFileName').value.trim();
-  const description = document.getElementById('codeFileDescription').value.trim();
-  if (!name) return showToast('File name is required.', 'error');
-  const files = readStoredArray(CODE_FILE_STORAGE_KEY);
-  const activeId = document.getElementById('codeFileId').value;
-  const existing = activeId && files.find((file) => file.id === activeId);
-  const record = { id: activeId || makeId(), name, fileType: CODE_EXTENSIONS[language] || 'txt', language, content: editor.value, updatedAt: new Date().toISOString(), description };
-  if (existing) files[files.indexOf(existing)] = record;
-  else files.push(record);
-  if (!saveStoredArray(CODE_FILE_STORAGE_KEY, files)) return;
-  document.getElementById('codeFileId').value = record.id;
-  closeModal('saveCodeModal');
-  showToast('Code saved successfully.');
-  viewSavedFiles();
-}
-
-function saveEditedFile(event) {
-  return saveCode(event);
-}
-
-function viewSavedFiles() {
-  const container = document.getElementById('savedFilesList');
-  if (!container) return;
-  const files = readStoredArray(CODE_FILE_STORAGE_KEY);
-  container.innerHTML = files.length ? files.map((file) => `
-    <article class="saved-file-card"><h3>${escapeHTML(file.name)}</h3><p>${escapeHTML(file.language)} · ${new Date(file.updatedAt).toLocaleString()}</p><p>${escapeHTML(file.description || 'No description')}</p>
-      <div class="project-actions">${file.language === 'Notebook' ? `<button class="secondary-btn" data-action="open-notebook-colab">Open in Google Colab</button><button class="ghost-btn" data-action="download-code" data-id="${escapeHTML(file.id)}">Download File</button>` : `<button class="secondary-btn" data-action="open-code" data-id="${escapeHTML(file.id)}">Open Code</button><button class="secondary-btn" data-action="edit-code" data-id="${escapeHTML(file.id)}">Edit Code</button><button class="ghost-btn" data-action="download-code" data-id="${escapeHTML(file.id)}">Download Code</button>`}<button class="ghost-btn" data-action="delete-code" data-id="${escapeHTML(file.id)}">Delete Code</button></div></article>`).join('') : '<p class="empty-state">No saved or uploaded files yet.</p>';
-  openModal('savedFilesModal');
-}
-
-function openSavedFile(id, edit = false) {
-  const file = readStoredArray(CODE_FILE_STORAGE_KEY).find((item) => item.id === id);
-  if (!file) return showToast('Saved file could not be found.', 'error');
-  const selector = document.getElementById('languageSelect');
-  if (file.language !== 'Notebook') selector.value = file.language;
-  document.getElementById('codeEditor').value = file.content;
-  document.getElementById('codeFileId').value = file.id;
-  try {
-    localStorage.setItem(EDITOR_STORAGE_KEY, file.content);
-  } catch (error) {
-    showToast(`Could not save editor draft: ${error.message}`, 'error');
-  }
-  closeModal('savedFilesModal');
-  if (edit) document.getElementById('codeEditor').focus();
-  else showToast('Code loaded into the editor.');
-}
-
-function editSavedFile(id) {
-  openSavedFile(id, true);
-  document.getElementById('codeFileName').value = readStoredArray(CODE_FILE_STORAGE_KEY).find((item) => item.id === id)?.name || '';
-}
-
-function downloadCodeFile(file) {
-  const blob = new Blob([file.content], { type: file.fileType === 'ipynb' ? 'application/json' : 'text/plain' });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  const baseName = file.name.replace(new RegExp(`\\.${file.fileType}$`, 'i'), '');
-  link.download = `${baseName.replace(/[<>:"/\\|?*\x00-\x1F]/g, '_')}.${file.fileType}`;
-  link.click();
-  window.setTimeout(() => URL.revokeObjectURL(link.href), 1000);
-}
-
-function downloadFile(id) {
-  const file = readStoredArray(CODE_FILE_STORAGE_KEY).find((item) => item.id === id);
-  if (file) downloadCodeFile(file);
-}
-
-function deleteCodeFile(id) {
-  if (!window.confirm('Are you sure you want to delete this saved file?')) return;
-  if (!saveStoredArray(CODE_FILE_STORAGE_KEY, readStoredArray(CODE_FILE_STORAGE_KEY).filter((file) => file.id !== id))) return;
-  viewSavedFiles();
-}
-
-function deleteFile(id) {
-  return deleteCodeFile(id);
-}
-
-function uploadFile() {
-  document.getElementById('codeUploadInput')?.click();
-}
-
-async function handleCodeUpload(event) {
-  const file = event.target.files[0];
-  event.target.value = '';
-  if (!file) return;
-  const extension = file.name.split('.').pop().toLowerCase();
-  const languages = { py: 'Python', java: 'Java', c: 'C', cpp: 'C++', ipynb: 'Notebook' };
-  if (!languages[extension]) return showToast('Choose a .py, .java, .c, .cpp, or .ipynb file.', 'error');
-  if (file.size > 1024 * 1024) return showToast('Files must be 1 MB or smaller to fit browser storage.', 'error');
-  try {
-    const content = await new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(String(reader.result));
-      reader.onerror = () => reject(reader.error || new Error('The selected file could not be read.'));
-      reader.readAsText(file);
-    });
-    if (extension === 'ipynb') {
-      const notebook = JSON.parse(content);
-      const cells = (notebook.cells || []).filter((cell) => cell.cell_type === 'code')
-        .map((cell) => Array.isArray(cell.source) ? cell.source.join('') : String(cell.source || '')).join('\n\n');
-      if (cells) document.getElementById('codeEditor').value = cells;
-    }
-    const defaultName = file.name.replace(/\.[^.]+$/, '');
-    const enteredName = window.prompt('Choose a file name, or keep the original name:', defaultName);
-    if (enteredName === null) return;
-    const name = enteredName.trim();
-    if (!name) return showToast('File name cannot be empty.', 'error');
-    const record = { id: makeId(), name, fileType: extension, language: languages[extension], content, updatedAt: new Date().toISOString(), description: `Uploaded ${file.name}` };
-    if (!saveStoredArray(CODE_FILE_STORAGE_KEY, [...readStoredArray(CODE_FILE_STORAGE_KEY), record])) return;
-    showToast('File uploaded successfully.');
-    viewSavedFiles();
-  } catch (error) {
-    showToast(`Could not read uploaded file: ${error.message}`, 'error');
-  }
-}
-
 async function runCode() {
   const editor = document.getElementById('codeEditor');
   const output = document.getElementById('codeOutput');
@@ -1464,10 +1299,6 @@ function setupPageEvents() {
     if (event.key === 'Escape') document.querySelectorAll('.modal.visible').forEach((modal) => closeModal(modal.id));
   });
 
-  const pdfForm = document.getElementById('pdfForm');
-  if (pdfForm) pdfForm.addEventListener('submit', addPDF);
-  const addPdfButton = document.getElementById('addModulePdfBtn');
-  if (addPdfButton) addPdfButton.addEventListener('click', () => openModal('pdfModal'));
   const viewPdfButton = document.getElementById('viewModulePdfsBtn');
   if (viewPdfButton) viewPdfButton.addEventListener('click', viewPDFs);
   const closePdfViewerButton = document.getElementById('closePdfViewerBtn');
@@ -1521,10 +1352,6 @@ function setupPageEvents() {
     window.clearTimeout(pdfResizeTimer);
     pdfResizeTimer = window.setTimeout(resizePdfBook, 120);
   });
-  const resourceForm = document.getElementById('resourceForm');
-  if (resourceForm) resourceForm.addEventListener('submit', addResource);
-  const addResourceButton = document.getElementById('addResourceBtn');
-  if (addResourceButton) addResourceButton.addEventListener('click', () => openModal('resourceModal'));
   const viewResourcesButton = document.getElementById('viewMyResourcesBtn');
   if (viewResourcesButton) viewResourcesButton.addEventListener('click', viewResources);
 
@@ -1541,17 +1368,11 @@ function setupPageEvents() {
     if (actionButton.dataset.action === 'download-folder-file') downloadProjectFile(id);
     if (actionButton.dataset.action === 'delete-folder-file') deleteProjectFile(id);
     if (actionButton.dataset.action === 'open-github') openGitHubRepo(actionButton.dataset.url);
-    if (actionButton.dataset.action === 'open-code') openSavedFile(id);
-    if (actionButton.dataset.action === 'edit-code') editSavedFile(id);
-    if (actionButton.dataset.action === 'download-code') downloadFile(id);
-    if (actionButton.dataset.action === 'delete-code') deleteFile(id);
-    if (actionButton.dataset.action === 'open-notebook-colab') openGoogleColab();
   });
 
   document.querySelectorAll('.filter-btn').forEach((button) => button.addEventListener('click', () => filterTools(button.dataset.filter)));
   const languageSelector = document.getElementById('languageSelect');
   if (languageSelector) languageSelector.addEventListener('change', () => {
-    document.getElementById('codeFileId').value = '';
     selectLanguage();
   });
   const sampleButton = document.getElementById('loadSampleCodeBtn');
@@ -1597,18 +1418,6 @@ function setupPageEvents() {
     if (title) title.dataset.folder = '';
     viewProjects();
   });
-  document.getElementById('viewSavedFilesBtn')?.addEventListener('click', viewSavedFiles);
-  document.getElementById('saveCodeBtn')?.addEventListener('click', () => {
-    const active = document.getElementById('codeFileId')?.value;
-    const record = active && readStoredArray(CODE_FILE_STORAGE_KEY).find((file) => file.id === active);
-    document.getElementById('codeFileName').value = record?.name || '';
-    document.getElementById('codeFileDescription').value = record?.description || '';
-    document.getElementById('codeFileLanguage').value = document.getElementById('languageSelect').value;
-    openModal('saveCodeModal');
-  });
-  document.getElementById('saveCodeForm')?.addEventListener('submit', saveEditedFile);
-  document.getElementById('uploadCodeBtn')?.addEventListener('click', uploadFile);
-  document.getElementById('codeUploadInput')?.addEventListener('change', handleCodeUpload);
   document.getElementById('runCodeBtn')?.addEventListener('click', runCode);
   const editor = document.getElementById('codeEditor');
   if (editor) {
