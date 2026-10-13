@@ -50,10 +50,10 @@ const THEMES = {
 };
 const DEFAULT_THEME = 'buttermilk-pageant-blue';
 const MODULE_NAMES = {
-  '1': 'Data Analysis',
-  '2': 'Extracting Meaning from Data',
-  '3': 'Feature Selection and Decision Tree Foundation',
-  '4': 'Ensemble Learning',
+  '1': 'Data Science Skills, Tools and Data Analysis',
+  '2': 'Data Extraction',
+  '3': 'Data Visualization',
+  '4': 'Statistical Thinking',
   '5': 'Dimensionality Reduction'
 };
 const MODULE_VIDEOS = {
@@ -224,7 +224,7 @@ function ensureModulePdfLayout() {
       <button class="viewer-control-btn" id="prevBtn" aria-label="Previous page" disabled><i class="fa-solid fa-chevron-left"></i><span>Previous</span></button>
       <span id="pdfPageNumber" class="pdf-page-number" aria-live="polite">Page 1 of 1</span>
       <button class="viewer-control-btn" id="nextBtn" aria-label="Next page" disabled><span>Next</span><i class="fa-solid fa-chevron-right"></i></button>
-      <div class="pdf-zoom-controls"><button class="viewer-icon-btn" id="zoomOutPdfBtn" aria-label="Zoom out"><i class="fa-solid fa-magnifying-glass-minus"></i></button><button class="viewer-icon-btn" id="zoomInPdfBtn" aria-label="Zoom in"><i class="fa-solid fa-magnifying-glass-plus"></i></button></div>
+      <div class="pdf-zoom-controls"><button class="viewer-icon-btn" id="zoomOutPdfBtn" aria-label="Zoom out"><i class="fa-solid fa-magnifying-glass-minus"></i></button><button class="viewer-icon-btn" id="zoomInPdfBtn" aria-label="Zoom in"><i class="fa-solid fa-magnifying-glass-plus"></i></button><button class="viewer-icon-btn" id="togglePdfViewerBtn" aria-label="Expand PDF viewer" title="Expand PDF viewer"><i class="fa-solid fa-expand"></i></button></div>
       <a class="viewer-control-btn pdf-download-btn" id="downloadPdfBtn" href="#" download><i class="fa-solid fa-download"></i><span>Download PDF</span></a>
     </div>
     <p id="pdfViewerStatus" class="pdf-viewer-status" role="status">Select a PDF to begin reading.</p>
@@ -239,12 +239,18 @@ function ensureModulePdfLayout() {
     detail.appendChild(aside);
   }
   aside.setAttribute('aria-labelledby', 'youtubeResourcesHeading');
-  aside.innerHTML = `<span class="eyebrow">Watch &amp; Learn</span><h2 id="youtubeResourcesHeading">Related YouTube Resources</h2>${resources.map(([title, description, query]) => `
+  aside.innerHTML = `<details class="youtube-resources-disclosure">
+    <summary class="youtube-resources-summary">
+      <span class="youtube-resources-heading"><span class="eyebrow">Watch &amp; Learn</span><span class="youtube-resources-title" id="youtubeResourcesHeading">Related YouTube Resources</span></span>
+      <i class="fa-solid fa-chevron-down youtube-resources-toggle" aria-hidden="true"></i>
+    </summary>
+    <div class="youtube-resource-list">${resources.map(([title, description, query]) => `
     <article class="youtube-resource-card">
       <div class="youtube-resource-icon"><i class="fa-brands fa-youtube"></i></div>
       <h3>${escapeHTML(title)}</h3><p>${escapeHTML(description)}</p>
       <a class="youtube-watch-link" href="https://www.youtube.com/results?search_query=${query}" target="_blank" rel="noopener noreferrer">Watch on YouTube <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
-    </article>`).join('')}`;
+    </article>`).join('')}</div>
+  </details>`;
   const moduleName = MODULE_NAMES[moduleNumber];
   if (moduleName) {
     document.body.dataset.moduleTitle = moduleName;
@@ -507,11 +513,10 @@ function isGitHubPages() {
 }
 
 function setupPublishedPdfCatalog() {
-  if (!isGitHubPages()) return;
   const addButton = document.getElementById('addModulePdfBtn');
+  if (isGitHubPages() && addButton) addButton.hidden = true;
   const actions = document.querySelector('.module-detail-actions');
-  if (addButton) addButton.hidden = true;
-  if (actions) {
+  if (isGitHubPages() && actions) {
     const hint = document.createElement('p');
     hint.className = 'form-hint';
     hint.textContent = 'To add PDFs on GitHub Pages, place them in the pdfs folder and add them to pdfs.json in the GitHub repository.';
@@ -531,10 +536,13 @@ async function getPublishedModulePDFs(moduleNumber) {
       || !new RegExp(`^pdfs/module${moduleNumber}/[A-Za-z0-9][A-Za-z0-9._-]*\\.pdf$`, 'i').test(pdf.path)) {
       throw new Error(`The published PDF list for Module ${moduleNumber} contains an invalid entry.`);
     }
+    const fileName = pdf.path.split('/').pop();
     return {
+      id: `published-${moduleNumber}-${fileName}`,
       title: pdf.title,
-      fileName: pdf.path.split('/').pop(),
-      path: pdf.path
+      fileName,
+      path: pdf.path,
+      readOnly: true
     };
   });
 }
@@ -582,13 +590,15 @@ async function viewPDFs() {
   openModal('pdfListModal');
   let pdfs;
   try {
+    const publishedPdfs = await getPublishedModulePDFs(moduleNumber);
     if (isGitHubPages()) {
-      pdfs = await getPublishedModulePDFs(moduleNumber);
+      pdfs = publishedPdfs;
     } else {
-      pdfs = (await getStoredPDFs()).filter((pdf) =>
+      const uploadedPdfs = (await getStoredPDFs()).filter((pdf) =>
         pdf.moduleNumber === moduleNumber
         || (!pdf.moduleNumber && moduleNumber === '1' && pdf.moduleName === 'Module 1: Introduction to Data Science')
       );
+      pdfs = [...publishedPdfs, ...uploadedPdfs];
     }
   } catch (error) {
     content.innerHTML = '<div class="empty-state">Could not load saved PDFs.</div>';
@@ -597,9 +607,9 @@ async function viewPDFs() {
   }
   content.innerHTML = pdfs.length ? pdfs.map((pdf) => `
     <article class="list-item">
-      <div><h4>${escapeHTML(pdf.title)}</h4><small>${escapeHTML(pdf.fileName || 'PDF')}</small></div>
-      <div class="list-actions">${isGitHubPages()
-        ? `<a href="${escapeHTML(pdf.path)}" target="_blank" rel="noopener noreferrer">Open PDF</a>`
+      <div><h4>${escapeHTML(pdf.title)}</h4><small>${pdf.readOnly ? 'Published · read-only' : escapeHTML(pdf.fileName || 'PDF')}</small></div>
+      <div class="list-actions">${pdf.readOnly
+        ? `<button class="open-pdf-btn" data-action="open-pdf" data-id="${escapeHTML(pdf.id)}">Read in Flipbook</button>`
         : `<button class="open-pdf-btn" data-action="open-pdf" data-id="${escapeHTML(pdf.id)}">Read PDF</button><button class="delete-pdf-btn" data-action="delete-pdf" data-id="${escapeHTML(pdf.id)}">Delete PDF</button>`}</div>
     </article>`).join('') : '<div class="empty-state">No PDFs added yet.</div>';
   openModal('pdfListModal');
@@ -658,8 +668,9 @@ function getPdfBookLayout() {
   const mobile = window.matchMedia('(max-width: 760px)').matches;
   const display = pdfDocument.numPages === 1 || mobile ? 'single' : 'double';
   const pageCountAcross = display === 'double' ? 2 : 1;
-  const availableWidth = Math.max(stage.clientWidth - 36, 1);
-  const availableHeight = Math.max(Math.min(window.innerHeight * 0.68, 720) - 20, 1);
+  const stageStyle = window.getComputedStyle(stage);
+  const availableWidth = Math.max(stage.clientWidth - parseFloat(stageStyle.paddingLeft) - parseFloat(stageStyle.paddingRight) - 2, 1);
+  const availableHeight = Math.max(stage.clientHeight - parseFloat(stageStyle.paddingTop) - parseFloat(stageStyle.paddingBottom) - 2, 1);
   const scale = Math.min(
     1,
     availableWidth / (pdfBookDimensions.width * pageCountAcross),
@@ -694,6 +705,7 @@ function resizePdfBook() {
 function closePdfFlipbook() {
   const viewer = document.getElementById('pdfBookViewer');
   if (!viewer) return;
+  setPdfViewerExpanded(false);
   pdfBookReady = false;
   const previousButton = document.getElementById('prevBtn');
   const nextButton = document.getElementById('nextBtn');
@@ -713,6 +725,17 @@ function closePdfFlipbook() {
   pdfBookDimensions = undefined;
 }
 
+function setPdfViewerExpanded(expanded) {
+  const viewer = document.getElementById('pdfBookViewer');
+  const button = document.getElementById('togglePdfViewerBtn');
+  if (!viewer || !button) return;
+  viewer.classList.toggle('is-expanded', expanded);
+  button.setAttribute('aria-label', expanded ? 'Collapse PDF viewer' : 'Expand PDF viewer');
+  button.title = expanded ? 'Collapse PDF viewer' : 'Expand PDF viewer';
+  button.innerHTML = `<i class="fa-solid fa-${expanded ? 'compress' : 'expand'}"></i>`;
+  window.requestAnimationFrame(() => resizePdfBook());
+}
+
 async function openPdfFlipbook(id) {
   const viewer = document.getElementById('pdfBookViewer');
   const status = document.getElementById('pdfViewerStatus');
@@ -727,24 +750,36 @@ async function openPdfFlipbook(id) {
       throw new Error('The PDF reader could not load. Check your internet connection and reload the page.');
     }
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-    const pdf = (await getStoredPDFs()).find((item) => item.id === id);
-    if (!pdf) {
-      throw new Error('This PDF could not be found in saved storage.');
-    }
-
-    document.getElementById('pdfViewerTitle').textContent = pdf.title;
+    const moduleNumber = document.body.dataset.moduleNumber;
+    const publishedPdf = (await getPublishedModulePDFs(moduleNumber)).find((item) => item.id === id);
     const downloadLink = document.getElementById('downloadPdfBtn');
-    const fileResponse = await fetchApi(`/api/modules/${encodeURIComponent(document.body.dataset.moduleNumber)}/pdfs/${encodeURIComponent(id)}/file`);
-    if (!fileResponse.ok) {
-      throw new Error(await getApiErrorMessage(fileResponse, 'The saved PDF file could not be loaded.'));
+    let pdf;
+    let pdfFile;
+    if (publishedPdf) {
+      pdf = publishedPdf;
+      downloadLink.hidden = true;
+      const fileResponse = await fetch(publishedPdf.path);
+      if (!fileResponse.ok) throw new Error('The published PDF file could not be loaded.');
+      pdfFile = await fileResponse.blob();
+    } else {
+      pdf = (await getStoredPDFs()).find((item) => item.id === id);
+      if (!pdf) throw new Error('This PDF could not be found in saved storage.');
+      downloadLink.hidden = false;
+      const fileResponse = await fetchApi(`/api/modules/${encodeURIComponent(moduleNumber)}/pdfs/${encodeURIComponent(id)}/file`);
+      if (!fileResponse.ok) {
+        throw new Error(await getApiErrorMessage(fileResponse, 'The saved PDF file could not be loaded.'));
+      }
+      pdfFile = await fileResponse.blob();
     }
-    const pdfFile = await fileResponse.blob();
+    document.getElementById('pdfViewerTitle').textContent = pdf.title;
     if (pdfFile.type !== 'application/pdf' || pdfFile.size === 0) {
       throw new Error('The server returned an invalid or empty PDF file.');
     }
     pdfObjectUrl = URL.createObjectURL(pdfFile);
-    downloadLink.href = pdfObjectUrl;
-    downloadLink.download = pdf.fileName || `${pdf.title}.pdf`;
+    if (!publishedPdf) {
+      downloadLink.href = pdfObjectUrl;
+      downloadLink.download = pdf.fileName || `${pdf.title}.pdf`;
+    }
 
     pdfDocument = await pdfjsLib.getDocument({ data: await pdfFile.arrayBuffer() }).promise;
     status.textContent = `Rendering ${pdfDocument.numPages} PDF pages…`;
@@ -1028,24 +1063,6 @@ function makeId() {
     : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
-function addProject(event) {
-  if (event) event.preventDefault();
-  const title = document.getElementById('projectTitle').value.trim();
-  const description = document.getElementById('projectDescription').value.trim();
-  const folderName = document.getElementById('projectFolder').value;
-  const github = document.getElementById('projectGithub').value.trim();
-  const tags = document.getElementById('projectTags').value.split(',').map((tag) => tag.trim()).filter(Boolean);
-  if (!title) return showToast('Project title is required.', 'error');
-  if (github && !github.startsWith('https://github.com/')) return showToast('GitHub links must start with https://github.com/.', 'error');
-  const projects = readStoredArray(PROJECT_STORAGE_KEY);
-  projects.push({ id: makeId(), title, description, folderName, github, tags, createdAt: new Date().toISOString() });
-  if (!saveStoredArray(PROJECT_STORAGE_KEY, projects)) return;
-  event.currentTarget.reset();
-  closeModal('projectModal');
-  showToast('Project added successfully.');
-  viewProjects();
-}
-
 async function viewProjects(folderName = '') {
   const container = document.getElementById('projectsList');
   if (!container) return;
@@ -1091,7 +1108,7 @@ async function viewProjects(folderName = '') {
     }
   }
   const contents = projectCards + fileCards;
-  container.innerHTML = contents || `<p class="empty-state">${folderName ? 'This folder is empty. Add files or assign projects to it.' : 'No projects added yet.'}</p>`;
+  container.innerHTML = contents || `<p class="empty-state">${folderName ? 'This folder is empty.' : 'No projects added yet.'}</p>`;
 }
 
 function formatFileSize(size) {
@@ -1107,35 +1124,6 @@ function deleteProject(id) {
   if (!saveStoredArray(PROJECT_STORAGE_KEY, projects.filter((project) => project.id !== id))) return;
   viewProjects(document.getElementById('projectsListTitle')?.dataset.folder || '');
   viewFolders();
-}
-
-async function addFolder(event) {
-  if (event) event.preventDefault();
-  const form = event?.currentTarget;
-  const name = document.getElementById('folderName').value.trim();
-  const description = document.getElementById('folderDescription').value.trim();
-  const files = [...(document.getElementById('folderFiles')?.files || [])];
-  if (!name) return showToast('Folder name is required.', 'error');
-  const folders = readStoredArray(FOLDER_STORAGE_KEY);
-  if (folders.some((folder) => folder.name.toLowerCase() === name.toLowerCase())) return showToast('A folder with that name already exists.', 'error');
-  const folder = { id: makeId(), name, description, createdAt: new Date().toISOString() };
-  try {
-    if (files.length) await storeProjectFiles(folder, files);
-    if (!saveStoredArray(FOLDER_STORAGE_KEY, [...folders, folder])) {
-      if (files.length) await removeProjectFiles(folder.id);
-      return;
-    }
-  } catch (error) {
-    showToast(`Could not save folder files: ${error.message}`, 'error');
-    return;
-  }
-  form?.reset();
-  const selectedFiles = document.getElementById('folderFilesSummary');
-  if (selectedFiles) selectedFiles.textContent = 'No files selected.';
-  closeModal('folderModal');
-  viewFolders();
-  updateProjectFolderOptions();
-  showToast(files.length ? 'Folder and files added successfully.' : 'Folder added successfully.');
 }
 
 async function viewFolders() {
@@ -1170,26 +1158,6 @@ async function viewFolders() {
         ${(filesByFolder.get(folder.id) || []).map((file) => `<div class="folder-file-item"><span><i class="fa-regular fa-file" aria-hidden="true"></i> ${escapeHTML(file.name)}</span><button class="ghost-btn" data-action="download-folder-file" data-id="${escapeHTML(file.id)}">Download</button><button class="ghost-btn" data-action="delete-folder-file" data-id="${escapeHTML(file.id)}">Remove</button></div>`).join('') || '<p>No files added.</p>'}
       </div>
       <div class="project-actions"><button class="secondary-btn" data-action="open-folder" data-folder="${escapeHTML(folder.name)}">Open Folder</button><button class="ghost-btn" data-action="delete-folder" data-id="${escapeHTML(folder.id)}">Delete Folder</button></div></article>`).join('') || '<p class="empty-state">No folders added yet.</p>';
-}
-
-async function storeProjectFiles(folder, files) {
-  const database = await openPdfDatabase();
-  const records = files.map((file) => ({
-    id: makeId(),
-    folderId: folder.id,
-    name: file.name,
-    type: file.type || 'application/octet-stream',
-    size: file.size,
-    createdAt: new Date().toISOString(),
-    file
-  }));
-  await new Promise((resolve, reject) => {
-    const transaction = database.transaction(PROJECT_FILE_STORE_NAME, 'readwrite');
-    records.forEach((record) => transaction.objectStore(PROJECT_FILE_STORE_NAME).add(record));
-    transaction.oncomplete = resolve;
-    transaction.onerror = () => reject(transaction.error || new Error('Could not store the selected files.'));
-    transaction.onabort = () => reject(transaction.error || new Error('Saving folder files was cancelled.'));
-  });
 }
 
 async function removeProjectFiles(folderId) {
@@ -1273,17 +1241,7 @@ function deleteFolder(id) {
     showToast(`Folder deleted, but its files could not be removed: ${error.message}`, 'error');
     viewFolders();
   });
-  updateProjectFolderOptions();
   viewProjects();
-}
-
-function updateProjectFolderOptions() {
-  const select = document.getElementById('projectFolder');
-  if (!select) return;
-  const selected = select.value;
-  select.innerHTML = '<option value="">Unfiled</option>' + readStoredArray(FOLDER_STORAGE_KEY)
-    .map((folder) => `<option value="${escapeHTML(folder.name)}">${escapeHTML(folder.name)}</option>`).join('');
-  select.value = selected;
 }
 
 function openGitHubRepo(url) {
@@ -1495,7 +1453,10 @@ function setupPageEvents() {
       event.preventDefault();
       flipPdfPage(event.key === 'ArrowRight' ? 'next' : 'previous');
     }
-    if (event.key === 'Escape' && viewer && !viewer.hidden) closePdfFlipbook();
+    if (event.key === 'Escape' && viewer && !viewer.hidden) {
+      if (viewer.classList.contains('is-expanded')) setPdfViewerExpanded(false);
+      else closePdfFlipbook();
+    }
     if (event.key === 'Escape' && themePicker?.classList.contains('is-open')) {
       setThemePickerOpen(false);
       document.getElementById('changeThemeBtn')?.focus();
@@ -1523,6 +1484,11 @@ function setupPageEvents() {
   if (zoomOutPdfButton) zoomOutPdfButton.addEventListener('click', () => setPdfZoom(-1));
   const zoomInPdfButton = document.getElementById('zoomInPdfBtn');
   if (zoomInPdfButton) zoomInPdfButton.addEventListener('click', () => setPdfZoom(1));
+  const togglePdfViewerButton = document.getElementById('togglePdfViewerBtn');
+  if (togglePdfViewerButton) togglePdfViewerButton.addEventListener('click', () => {
+    const viewer = document.getElementById('pdfBookViewer');
+    setPdfViewerExpanded(!viewer.classList.contains('is-expanded'));
+  });
   const flipbookStage = document.getElementById('pdfFlipbookStage');
   if (flipbookStage) {
     flipbookStage.addEventListener('click', (event) => {
@@ -1626,19 +1592,6 @@ function setupPageEvents() {
       setThemePickerOpen(false);
     }
   });
-  const projectForm = document.getElementById('projectForm');
-  if (projectForm) projectForm.addEventListener('submit', addProject);
-  const folderForm = document.getElementById('folderForm');
-  if (folderForm) folderForm.addEventListener('submit', addFolder);
-  const folderFilesInput = document.getElementById('folderFiles');
-  if (folderFilesInput) folderFilesInput.addEventListener('change', () => {
-    const names = [...folderFilesInput.files].map((file) => file.name);
-    document.getElementById('folderFilesSummary').textContent = names.length
-      ? `${names.length} file${names.length === 1 ? '' : 's'} selected: ${names.join(', ')}`
-      : 'No files selected.';
-  });
-  document.getElementById('addProjectBtn')?.addEventListener('click', () => openModal('projectModal'));
-  document.getElementById('addFolderBtn')?.addEventListener('click', () => openModal('folderModal'));
   document.getElementById('backToProjectsBtn')?.addEventListener('click', () => {
     const title = document.getElementById('projectsListTitle');
     if (title) title.dataset.folder = '';
@@ -1697,7 +1650,6 @@ function init() {
   filterTools();
   const codeEditor = document.getElementById('codeEditor');
   if (codeEditor && !codeEditor.value && codeEditor.dataset.restoredDraft !== 'true') selectLanguage();
-  updateProjectFolderOptions();
   viewFolders();
   if (document.getElementById('projectsList')) viewProjects();
 }

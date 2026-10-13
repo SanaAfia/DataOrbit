@@ -1,7 +1,52 @@
 {
-  "1": [],
-  "2": [],
-  "3": [],
-  "4": [],
-  "5": []
+  "1": [
+    {
+      "title": "Introduction to Data Science",
+      "path": "pdfs/module1/introduction-to-data-science.pdf"
+    },
+    {
+      "title": "Skills for Data Science",
+      "path": "pdfs/module1/skills-for-data-science.pdf"
+    },
+    {
+      "title": "Tools for Data Science",
+      "path": "pdfs/module1/tools-for-data-science.pdf"
+    },
+    {
+      "title": "Data Analysis and Analytics",
+      "path": "pdfs/module1/data-analysis-and-analytics.pdf"
+    }
+  ],
+  "2": [
+    {
+      "title": "Decision Tree Classification Algorithm",
+      "path": "pdfs/module2/decision-tree-classification-algorithm.pdf"
+    },
+    {
+      "title": "Storey Decision Trees",
+      "path": "pdfs/module2/storey-decision-trees.pdf"
+    },
+    {
+      "title": "Dimensionality: PCA and LDA",
+      "path": "pdfs/module2/dimensionality-pca-lda.pdf"
+    }
+  ],
+  "3": [
+    {
+      "title": "Exploratory Data Analysis and Visualization",
+      "path": "pdfs/module3/module-3-exploratory-data-analysis-visualization.pdf"
+    }
+  ],
+  "4": [
+    {
+      "title": "Statistics and Machine Learning",
+      "path": "pdfs/module4/module-4-statistics-machine-learning.pdf"
+    }
+  ],
+  "5": [
+    {
+      "title": "Advanced Data Science Applications",
+      "path": "pdfs/module5/module-5-advanced-data-science-applications.pdf"
+    }
+  ]
 }

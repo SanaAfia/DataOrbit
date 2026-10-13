@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="en"><head>
   <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Module 1: Data Analysis | DataOrbit</title>
+  <title>Module 1: Data Science Skills, Tools and Data Analysis | DataOrbit</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" /><link rel="stylesheet" href="style.css" />
-</head><body data-page="module1" data-module-number="1" data-module-title="Data Analysis">
-  <header class="navbar"><div class="container nav-wrap"><a href="index.html" class="brand"><img src="assets/mbu-logo.png" alt="Mohan Babu University logo" /><span class="brand-name">DataOrbit</span></a><button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false"><span></span><span></span><span></span></button><nav class="nav-menu" aria-label="Main navigation"><a class="nav-link" href="index.html">Home</a><a class="nav-link active" href="modules.html">Modules</a><a class="nav-link" href="resources.html">Resources</a><a class="nav-link" href="tools.html">Tools</a><a class="nav-link" href="projects.html">Projects</a><a class="nav-link" href="lab.html">Lab Experiments</a><a class="nav-link" href="profile.html">Profile</a></nav></div></header>
-  <main class="page-main"><section class="container page-heading"><span class="eyebrow">Module 1</span><h1>Data Analysis</h1><p>Learn to inspect, clean, summarize, and communicate insights from real-world data.</p></section>
+</head><body data-page="module1" data-module-number="1" data-module-title="Data Science Skills, Tools and Data Analysis">
+  <header class="navbar"><div class="container nav-wrap"><a href="index.html" class="brand"><img src="assets/site-logo.jpeg" alt="DataOrbit logo" /><span class="brand-name">DataOrbit</span></a><button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false"><span></span><span></span><span></span></button><nav class="nav-menu" aria-label="Main navigation"><a class="nav-link" href="index.html">Home</a><a class="nav-link active" href="modules.html">Modules</a><a class="nav-link" href="resources.html">Resources</a><a class="nav-link" href="tools.html">Tools</a><a class="nav-link" href="projects.html">Projects</a><a class="nav-link" href="lab.html">Lab Experiments</a><a class="nav-link" href="profile.html">Profile</a></nav></div></header>
+  <main class="page-main"><section class="container page-heading"><span class="eyebrow">Module 1</span><h1>Data Science Skills, Tools and Data Analysis</h1><p>Learn to inspect, clean, summarize, and communicate insights from real-world data.</p></section>
     <section class="container module-detail module-detail-layout">
       <div class="module-primary-column">
         <article class="glass-card module-detail-card">
@@ -26,7 +26,7 @@
             <button class="viewer-control-btn" id="prevBtn" aria-label="Previous page" disabled><i class="fa-solid fa-chevron-left"></i><span>Previous</span></button>
             <span id="pdfPageNumber" class="pdf-page-number" aria-live="polite">Page 1 of 1</span>
             <button class="viewer-control-btn" id="nextBtn" aria-label="Next page" disabled><span>Next</span><i class="fa-solid fa-chevron-right"></i></button>
-            <div class="pdf-zoom-controls"><button class="viewer-icon-btn" id="zoomOutPdfBtn" aria-label="Zoom out"><i class="fa-solid fa-magnifying-glass-minus"></i></button><button class="viewer-icon-btn" id="zoomInPdfBtn" aria-label="Zoom in"><i class="fa-solid fa-magnifying-glass-plus"></i></button></div>
+            <div class="pdf-zoom-controls"><button class="viewer-icon-btn" id="zoomOutPdfBtn" aria-label="Zoom out"><i class="fa-solid fa-magnifying-glass-minus"></i></button><button class="viewer-icon-btn" id="zoomInPdfBtn" aria-label="Zoom in"><i class="fa-solid fa-magnifying-glass-plus"></i></button><button class="viewer-icon-btn" id="togglePdfViewerBtn" aria-label="Expand PDF viewer" title="Expand PDF viewer"><i class="fa-solid fa-expand"></i></button></div>
             <a class="viewer-control-btn pdf-download-btn" id="downloadPdfBtn" href="#" download><i class="fa-solid fa-download"></i><span>Download PDF</span></a>
           </div>
           <p id="pdfViewerStatus" class="pdf-viewer-status" role="status">Select a PDF to begin reading.</p>
@@ -34,11 +34,17 @@
         </section>
       </div>
       <aside class="youtube-resources glass-card" aria-labelledby="youtubeResourcesHeading">
-        <span class="eyebrow">Watch &amp; Learn</span>
-        <h2 id="youtubeResourcesHeading">Related YouTube Resources</h2>
-        <article class="youtube-resource-card"><div class="youtube-resource-icon"><i class="fa-brands fa-youtube"></i></div><h3>Data Analysis for Beginners</h3><p>Learn the basic workflow for exploring and analyzing data.</p><a class="youtube-watch-link" href="https://www.youtube.com/results?search_query=Data+Analysis+for+Beginners" target="_blank" rel="noopener noreferrer">Watch on YouTube <i class="fa-solid fa-arrow-up-right-from-square"></i></a></article>
-        <article class="youtube-resource-card"><div class="youtube-resource-icon"><i class="fa-brands fa-youtube"></i></div><h3>Data Analysis with Python</h3><p>See how Python supports practical data analysis.</p><a class="youtube-watch-link" href="https://www.youtube.com/results?search_query=Data+Analysis+with+Python" target="_blank" rel="noopener noreferrer">Watch on YouTube <i class="fa-solid fa-arrow-up-right-from-square"></i></a></article>
-        <article class="youtube-resource-card"><div class="youtube-resource-icon"><i class="fa-brands fa-youtube"></i></div><h3>Exploratory Data Analysis</h3><p>Explore patterns and summarize a dataset before modeling.</p><a class="youtube-watch-link" href="https://www.youtube.com/results?search_query=Exploratory+Data+Analysis" target="_blank" rel="noopener noreferrer">Watch on YouTube <i class="fa-solid fa-arrow-up-right-from-square"></i></a></article>
+        <details class="youtube-resources-disclosure">
+          <summary class="youtube-resources-summary">
+            <span class="youtube-resources-heading"><span class="eyebrow">Watch &amp; Learn</span><span class="youtube-resources-title" id="youtubeResourcesHeading">Related YouTube Resources</span></span>
+            <i class="fa-solid fa-chevron-down youtube-resources-toggle" aria-hidden="true"></i>
+          </summary>
+          <div class="youtube-resource-list">
+            <article class="youtube-resource-card"><div class="youtube-resource-icon"><i class="fa-brands fa-youtube"></i></div><h3>Data Analysis for Beginners</h3><p>Learn the basic workflow for exploring and analyzing data.</p><a class="youtube-watch-link" href="https://www.youtube.com/results?search_query=Data+Analysis+for+Beginners" target="_blank" rel="noopener noreferrer">Watch on YouTube <i class="fa-solid fa-arrow-up-right-from-square"></i></a></article>
+            <article class="youtube-resource-card"><div class="youtube-resource-icon"><i class="fa-brands fa-youtube"></i></div><h3>Data Analysis with Python</h3><p>See how Python supports practical data analysis.</p><a class="youtube-watch-link" href="https://www.youtube.com/results?search_query=Data+Analysis+with+Python" target="_blank" rel="noopener noreferrer">Watch on YouTube <i class="fa-solid fa-arrow-up-right-from-square"></i></a></article>
+            <article class="youtube-resource-card"><div class="youtube-resource-icon"><i class="fa-brands fa-youtube"></i></div><h3>Exploratory Data Analysis</h3><p>Explore patterns and summarize a dataset before modeling.</p><a class="youtube-watch-link" href="https://www.youtube.com/results?search_query=Exploratory+Data+Analysis" target="_blank" rel="noopener noreferrer">Watch on YouTube <i class="fa-solid fa-arrow-up-right-from-square"></i></a></article>
+          </div>
+        </details>
       </aside>
     </section>
   </main>

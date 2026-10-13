@@ -287,7 +287,9 @@ app.use((request, _response, next) => {
   const isPage = /^(index|lab|module[1-5]|modules|profile|projects|resources|tools)\.html$/.test(fileName);
   const isSharedAsset = fileName === 'script.js' || fileName === 'style.css';
   const isImageAsset = /^\/assets\/[A-Za-z0-9._-]+\.(png|jpe?g|webp|svg|ico)$/i.test(requestedPath);
-  if (!isHomePage && !isPage && !isSharedAsset && !isImageAsset) {
+  const isPublishedPdfCatalog = requestedPath === '/pdfs.json';
+  const isPublishedPdf = /^\/pdfs\/module[1-5]\/[A-Za-z0-9][A-Za-z0-9._-]*\.pdf$/i.test(requestedPath);
+  if (!isHomePage && !isPage && !isSharedAsset && !isImageAsset && !isPublishedPdfCatalog && !isPublishedPdf) {
     next(new HttpError(404, 'File not found.'));
     return;
   }

@@ -14,11 +14,11 @@ PDFs still present in this site's browser storage are copied to the server the n
 
 ## Publish PDFs on GitHub Pages
 
-GitHub Pages serves static files and cannot run the PDF upload API. On GitHub Pages, add PDFs to the repository and list them in `pdfs.json`; the module pages will show links to them. These files are public to anyone who can access the site.
+GitHub Pages serves static files and cannot run the PDF upload API. On GitHub Pages, add PDFs to the repository and list them in `pdfs.json`; the module pages open them in the built-in flipbook. Published PDFs are read-only in the site: they have no edit, delete, or download controls. Anyone with site access can still view the documents.
 
 1. Add the PDF to `pdfs/moduleN/`, replacing `N` with the module number (1–5). Use a simple filename, such as `lecture-notes.pdf`.
 2. Edit the matching module list in `pdfs.json` and add an entry like `{"title":"Lecture notes","path":"pdfs/module1/lecture-notes.pdf"}`.
-3. Commit and push both files to GitHub. GitHub Pages will publish the changes; open the module page and choose **View Module N PDFs**.
+3. Commit and push the PDF and catalog changes to GitHub. GitHub Pages will publish them; open the module page, choose **View Module N PDFs**, then **Read in Flipbook**.
 
 Direct PDF uploads remain available when running the site with its Node server. The optional `render.yaml` deployment needs paid Render resources for persistent storage; no Render deployment is needed for GitHub Pages.
 
