@@ -1781,10 +1781,6 @@ h3,
   transition: transform 240ms ease, border-color 240ms ease, box-shadow 240ms ease;
 }
 
-.dashboard-card:nth-child(4) {
-  grid-column: 2 / span 2;
-}
-
 .dashboard-card::before {
   content: "";
   position: absolute;
